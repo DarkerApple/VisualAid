@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>👁️ Visual Aid Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Cookie Consent -->
+<div id="cookieConsent" class="cookie-consent hidden">
+  <div class="cookie-content">
+    <h3>🍪 쿠키 및 데이터 저장 동의</h3>
+    <p>이 사이트는 여러분의 눈 건강 데이터를 로컬에 저장하여 이전 활동과 비교 분석을 제공합니다. 브라우저의 로컬 스토리지만 사용하며 외부 서버로 전송되지 않습니다.</p>
+    <div class="cookie-buttons">
+      <button onclick="acceptCookies()" class="btn-accept">동의하고 계속하기</button>
+      <button onclick="rejectCookies()" class="btn-reject">거부하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Status Badge -->
+<div class="status-badge" id="statusBadge">🔴 연결 안 됨</div>
+
+<!-- Settings Button -->
+<button class="settings-btn" onclick="showPage('settings')">⚙️</button>
+
+<!-- Version Button -->
+<button class="version-btn" onclick="showDetail('changelog')" title="버전 로그">📜</button>
+
+<div class="container" id="mainPage">
+  <div class="header">
+    <h1>❤️‍🩹 Visual Aid</h1>
+    <p>실시간 눈 건강 모니터링 시스템</p>
+    <!-- Add this in index.html after the .header div -->
+    <button id="connectBtn" class="connect-btn" >Arduino 연결</button>
+
+  </div>
+
+      <div class="report-navigation" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;">
+  <button onclick="showDetail('weeklyReport')" class="nav-btn">
+    📊 주간 리포트
+  </button>
+  <button onclick="showDetail('monthlyReport')" class="nav-btn">
+    📅 월간 리포트
+  </button>
+  <button onclick="showDetail('notificationSettings')" class="nav-btn">
+    🔔 알림 설정
+  </button>
+  </div>
+
+  <div class="grid">
+    <!-- Current Status Card -->
+    <div class="card clickable" id="statusCard" onclick="showDetail('status')">
+      <h3>🎯 현재 상황</h3>
+      <div class="live-data" id="statusText">연결 대기 중</div>
+      <div class="recommendation" id="recommendation">Arduino를 연결하여 눈 건강 모니터링을 시작하세요...</div>
+      <small class="click-hint">클릭하여 상세정보 보기 →</small>
+    </div>
+                      
+    <!-- Distance Card -->
+    <div class="card" onclick="showDetail('distance')">
+      <h3>📏 거리</h3>
+      <div class="live-data"><span id="distance">--</span> <small>cm</small></div>
+      <p><strong>권장:</strong> 50-80cm</p>
+      <small>현재 화면과의 거리</small>
+    </div>
+    
+    <!-- Light Card -->
+    <div class="card" onclick="showDetail('light')">
+      <h3>💡 조도</h3>
+      <div class="live-data"><span id="lightLevel">--</span></div>
+      <p><strong>권장:</strong> 500-1023</p>
+      <small>현재 밝기 강도 (0-1023)</small>
+    </div>
+    
+    <!-- Alerts Card -->
+    <div class="card clickable" onclick="showDetail('alerts')">
+      <h3>📊 최근 경고</h3>
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value" id="sessionTime">0</div>
+          <small>분</small>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="dangerCount">0</div>
+          <small>경고</small>
+        </div>
+      </div>
+      <small class="click-hint">클릭하여 상세분석 보기 →</small>
+    </div>
+  </div>
+
+  <!-- Real-time Danger Gauge -->
+  <div class="servo-section">
+    <h3>⚡ 실시간 위험도 측정</h3>
+    <div class="servo-gauge">
+      <div class="servo-needle" id="servoNeedle"></div>
+    </div>
+    <div class="servo-labels">
+      <span style="color: #2ecc71;">안전</span>
+      <span style="color: #f39c12;">주의</span>
+      <span style="color: #e74c3c;">위험</span>
+    </div>
+    <p style="text-align: center; margin-top: 10px; opacity: 0.8; font-size: 0.9em;">
+      왼쪽: 최적 거리 | 오른쪽: 조정 필요
+    </p>
+  </div>
+
+  <!-- Live Chart -->
+  <div class="chart-container">
+    <h3>📈 실시간 건강 모니터링</h3>
+    <canvas id="chart" width="800" height="350"></canvas>
+    <p style="text-align: center; margin-top: 15px;">
+      <small>🟢 거리 (0-200cm) | 🟠 조도 (0-1023) | 이중 축 그래프</small>
+    </p>
+  </div>
+
+  <!-- Comparison Section -->
+  <div id="comparisonSection" class="comparison-section hidden">
+    <h3>📊 이전 세션과 비교</h3>
+    <div class="comparison-grid" id="comparisonGrid"></div>
+  </div>
+
+  <!-- Tips Section -->
+  <div class="tips-section">
+    <div class="tip-card">
+      <h4>🔵 블루라이트 차단</h4>
+      <ul class="tip-list">
+        <li>기기의 야간 모드나 f.lux를 활성화하세요</li>
+        <li>블루라이트 차단 안경을 착용하세요</li>
+        <li>화면 밝기를 실내 조명에 맞추세요</li>
+        <li>모니터 뒤에 따뜻한 간접조명을 추가하세요</li>
+        <li>가능한 경우 다크 모드 애플리케이션을 사용하세요</li>
+      </ul>
+    </div>
+
+    <div class="tip-card">
+      <h4>📐 완벽한 자세</h4>
+      <ul class="tip-list">
+        <li>화면을 눈에서 50-70cm 거리에 배치하세요</li>
+        <li>화면 상단이 눈높이와 같거나 약간 아래에 위치하도록 하세요</li>
+        <li>발을 바닥이나 발받침에 평평하게 두세요</li>
+        <li>등을 의자에 곧게 대고 앉으세요</li>
+        <li>어깨에 힘을 빼고 앞으로 구부정하게 앉지 마세요</li>
+      </ul>
+    </div>
+
+    <div class="tip-card">
+      <h4>⏰ 20-20-20 규칙</h4>
+      <ul class="tip-list">
+        <li>20분마다 화면에서 눈을 떼세요</li>
+        <li>20피트(6미터) 떨어진 곳을 바라보세요</li>
+        <li>최소 20초 동안 초점을 맞추세요</li>
+        <li>의식적으로 눈을 깜빡여 촉촉하게 유지하세요</li>
+        <li>일어나서 몸을 스트레칭하세요</li>
+      </ul>
+    </div>
+
+    <div class="tip-card">
+      <h4>💡 최적 조명 설정</h4>
+      <ul class="tip-list">
+        <li>화면에 직접 빛이 비치지 않도록 하세요</li>
+        <li>광원을 모니터 뒤나 옆에 배치하세요</li>
+        <li>방을 밝게 유지하고 어둠 속에서 작업하지 마세요</li>
+        <li>가능한 한 자연광을 활용하세요</li>
+        <li>작업용 조명을 위해 조절 가능한 스탠드를 설치하세요</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Pages -->
+<div id="detailPages" class="hidden"></div>
+
+
+<!-- Detail Pages -->
+<div id="detailPages" class="hidden"></div>
+
+<!-- Notification Permission Modal -->
+<div id="notificationModal" class="notification-modal hidden">
+  <div class="notification-modal-content">
+    <h3>🔔 스마트 알림 활성화</h3>
+    <p>20-20-20 규칙과 맞춤형 휴식 알림을 받으시겠습니까?</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">브라우저 알림 권한이 필요합니다.</p>
+    <div class="notification-buttons">
+      <button onclick="enableNotifications()" class="btn-accept">알림 켜기</button>
+      <button onclick="closeNotificationModal()" class="btn-reject">나중에</button>
+    </div>
+  </div>
+</div>
+
+<h12 style="font-size: 0.5px;">응 김희원</h12>
+
+<script src="app.js"></script>
+<script src="details.js"></script>
+<script src="chart.js"></script>
+<script src="reports.js"></script>
+<script src="notification.js"></script>
+</body>
+</html>
